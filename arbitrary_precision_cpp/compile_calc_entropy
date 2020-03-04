@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# python setup.py build_ext
+# python setup.py build_py
+
+swig -c++ -python calc_entropy.i
+python setup.py build_ext --inplace
+
+# swig -c++ -python calc_entropy.i ### old
+#
+# g++ -O3 -fPIC -c -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 calc_entropy.cxx
+# g++ -c -fPIC calc_entropy_wrap.cxx  -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
+# g++ -c -fPIC -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -o _calc_entropy.so calc_entropy.o calc_entropy_wrap.o
+#
+#
+# g++ -O3 -fPIC -c -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 calc_entropy.cxx
+# g++ -c -fPIC calc_entropy_wrap.cxx  -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
+# g++ -c -fPIC -I/Users/will/anaconda/include/python2.7 -I/Users/will/anaconda/include/python2.7 -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -o _calc_entropy.so calc_entropy.o calc_entropy_wrap.o
+
+## g++ -L/Users/will/anaconda/pkgs/python-2.7.12-1 -lpython2.7 -shared -o _calc_entropy.so calc_entropy.o calc_entropy_wrap.o
+## -Wl,-soname,_calc_entropy.so
+
+# g++ -O3 -fPIC -lpython2.7 -ldl -framework CoreFoundation -u _PyMac_Error -shared -o _calc_entropy.so calc_entropy.o calc_entropy_wrap.o
+
+# g++ -O3 -fPIC -lpython -shared -o _calc_entropy.so calc_entropy.o calc_entropy_wrap.o ### I work
+
+# g++ calc_entropy.cxx -o calc_entropy -O3
+# -fPIC

@@ -1,0 +1,10 @@
+swig -c++ -python calc_entropy.i
+
+# is a comment
+gcc -std=c++11 -lmpfr -lgmp -pthread -fno-strict-aliasing -g -O2 -g -fwrapv -O3 -Wall -fPIC -I/home/will/anaconda2/include/python2.7 -c calc_entropy_wrap.cxx -o build/temp.linux-x86_64-2.7/calc_entropy_wrap.o
+gcc -std=c++11 -lmpfr -lgmp -pthread -fno-strict-aliasing -g -O2 -g -fwrapv -O3 -Wall -fPIC -I/home/will/anaconda2/include/python2.7 -c calc_entropy.cxx -o build/temp.linux-x86_64-2.7/calc_entropy.o
+g++ -std=c++11 -lmpfr -lgmp -pthread -shared -L/home/will/anaconda2/lib -Wl,-rpath=/home/will/anaconda2/lib,--no-as-needed build/temp.linux-x86_64-2.7/calc_entropy_wrap.o build/temp.linux-x86_64-2.7/calc_entropy.o -L/home/will/anaconda2/lib -lpython2.7 -o _calc_entropy.so
+
+# g++ -lmpfr -lgmp -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -g -fwrapv -O3 -Wall -I/Users/will/anaconda/include/python2.7 -c calc_entropy_wrap.cxx -o build/temp.macosx-10.6-x86_64-2.7/calc_entropy_wrap.o
+# g++ -lmpfr -lgmp -fno-strict-aliasing -I/Users/will/anaconda/include -arch x86_64 -g -fwrapv -O3 -Wall -I/Users/will/anaconda/include/python2.7 -c calc_entropy.cxx -o build/temp.macosx-10.6-x86_64-2.7/calc_entropy.o
+# g++ -lmpfr -lgmp -bundle -undefined dynamic_lookup -L/Users/will/anaconda/lib -arch x86_64 -arch x86_64 build/temp.macosx-10.6-x86_64-2.7/calc_entropy_wrap.o build/temp.macosx-10.6-x86_64-2.7/calc_entropy.o -L/Users/will/anaconda/lib -o /Users/will/Documents/Berkeley/Research/Floquet_RSRGX_will/Numerics/C++/floquet_rsrg/_calc_entropy.so
