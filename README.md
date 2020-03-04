@@ -30,7 +30,7 @@ The purpose of this repo is to host a simple implementation of free fermion nume
 
 Also included are a set of methods for simulating Majorana chains, i.e. systems of Majorana fermions in one dimension. The quantum Ising model directly maps onto such a chain, for example, via a Jordan-Wigner transformation. 
 
-For strongly disordered systems, one must take great care with numerical precision issues (see https://arxiv.org/abs/1803.00019); also included is an arbitrary-precision implementation in C++. This implementation relies on two other libraries: Eigen (https://github.com/PX4/eigen), and the MPFR C++ interface (http://www.holoborodko.com/pavel/mpfr/), which allows for arbitrary precision linear algebra. 
+For strongly disordered systems, one must take great care with numerical precision issues (see https://arxiv.org/abs/1803.00019); also included is an arbitrary-precision implementation in C++. This implementation relies on two other libraries: Eigen (https://github.com/PX4/eigen), and the MPFR C++ interface (http://www.holoborodko.com/pavel/mpfr/), which allows for arbitrary precision linear algebra. Please download these libraries from their respective sources. 
 
 Please enjoy the power of simulating quantum systems of several thousand sites, and let me know of any bugs you encounter.
 
