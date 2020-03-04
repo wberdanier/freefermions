@@ -26,7 +26,11 @@ The technical details of this procedure can be found in above original reference
 
 ## This repo
 
-The purpose of this repo is to host a simple implementation of free fermion numerics. It has been implemented in both python and julia. For strongly disordered systems, one must take great care with numerical precision issues (see https://arxiv.org/abs/1803.00019); also included is an arbitrary-precision implementation in C++. 
+The purpose of this repo is to host a simple implementation of free fermion numerics. It has been implemented in both python and julia, and includes methods for getting eigenstates of the Hamiltonian or Floquet unitary operator, calculating the entanglement in that state, time evolving, and calculating the Loschmidt echo. 
+
+Also included are a set of methods for simulating Majorana chains, i.e. systems of Majorana fermions in one dimension. The Ising model directly maps onto such a chain, for example. 
+
+For strongly disordered systems, one must take great care with numerical precision issues (see https://arxiv.org/abs/1803.00019); also included is an arbitrary-precision implementation in C++. This implementation relies on two other libraries: Eigen (https://github.com/PX4/eigen), and the MPFR C++ interface (http://www.holoborodko.com/pavel/mpfr/), which allows for arbitrary precision linear algebra. 
 
 Please enjoy the power of simulating quantum systems of several thousand sites, and let me know of any bugs you encounter.
 
