@@ -1,4 +1,6 @@
 #=
+@author: William Berdanier
+
 This file calculates the entanglement entropy of the driven XX model (Floquet system).
 =#
 

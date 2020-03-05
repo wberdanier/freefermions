@@ -3,7 +3,7 @@
 """
 Created on Thu Aug 31 14:37:32 2017
 
-@author: will
+@author: William Berdanier
 """
 
 import numpy as np
@@ -22,7 +22,17 @@ from scipy.linalg import expm,logm
 import sys
 import math
 
+###############################################################################
+# The following code calcualtes the Entanglement Entropy for
+# a critical Ising model periodically driven by a Z-field at the boundary (Majorana representation).
+# In the Majorana language, the correlation function matrix is antisymmetric, so we must
+# do a pseudo-eigenvalue decomposition to put the matrix in Jordan form (not diagonal form).
+# This is less stable than the XX trick (see LoschmidtXX_Floquet.py), but the matrices are smaller.
+# See PRL 118, 260602 (2017) for physics details.
+###############################################################################
+
 def print_mat(M):
+    # Prints a matrix.
     for j in xrange(M.shape[0]):
         st=''
         for k in xrange(M.shape[1]):
@@ -30,26 +40,30 @@ def print_mat(M):
         print st
 
 def get_diag(M,k):
+    # returns the k-th diagonal of matrix M.
     M = np.array(M)
     return np.array([M[i,i+k] for i in range(M.shape[0] - k)])
 
-def get_onebody_eigs(F,l1=0,l2=0,L=0): # calculates many body eigenvalues from single body Floquet operator
-    # assert unitarity here
+def get_onebody_eigs(F,l1=0,l2=0,L=0,ifPlot=False): # calculates many body eigenvalues from single body Floquet operator
+    # Gets the one-body eigenstates (particle number=1) of a given Floquet unitary operator.
+    # Then plots the quasienergy spectrum if flag ifPlot is True.
     F = np.array(F)
     w,v = la.eig(F)
     Lpi = w.shape[0]
     QEs_raw = np.real(-1j * np.log(w))
     QEs = np.sort(QEs_raw)
 
-    plt.figure()
-    plt.plot(QEs/np.pi,'ko')
-    plt.ylabel('Quasienergy / $\pi$')
-    plt.xlabel('Index (meaningless)')
-    plt.ylim([-1.1,1.1])
-    plt.title('Eigenvalues of the single-body Floquet operator for pi chain with $L=$'+str(Lpi)+'\n $(l_1,l_2) = $('+str(l1)+','+str(l2)+')')
+    if ifPlot:
+        plt.figure()
+        plt.plot(QEs/np.pi,'ko')
+        plt.ylabel('Quasienergy / $\pi$')
+        plt.xlabel('Index (meaningless)')
+        plt.ylim([-1.1,1.1])
+        plt.title('Eigenvalues of the single-body Floquet operator for pi chain with $L=$'+str(Lpi)+'\n $(l_1,l_2) = $('+str(l1)+','+str(l2)+')')
     return QEs_raw,v
 
 def eig_to_diag_matrix(lam):
+    # Returns a diagonal matrix M with diagonal entries lam.
     M = np.zeros((2*len(lam),2*len(lam)))
     lam = np.array(lam)
     iA = range(0,M.shape[0],2)
@@ -59,9 +73,10 @@ def eig_to_diag_matrix(lam):
     return M
 
 def diag_antisymm_matr(A,check_form=True):
-    '''Diagonalize real antisymmetric matrix to form Q^T \Sigma Q, where
-    Q is orthogonal and \Sigma is block diagonal of J-W form as on Wikipedia with
-    positive real numbers in upper triangle'''
+    # Diagonalize real antisymmetric matrix to form Q^T \Sigma Q, where
+    # Q is orthogonal and \Sigma is block diagonal of J-W form, as on Wikipedia with
+    # positive real numbers in upper triangle.
+
     assert A.shape[0] % 2 == 0
 #    assert max(np.abs(A+A.T).flatten()) < 1e-9
 
@@ -102,6 +117,8 @@ def diag_antisymm_matr(A,check_form=True):
     return (Q,lam)
 
 def trim(arr,eps):
+    # Trims array such that elements within epsilon of 0 or 1, or is NaN, are removed.
+    # This is used to regulate the entanglement entropy calcuations, where we do sum(p log p).
     out = []
     for j in range(arr.shape[0]):
         elt = arr[j]
@@ -111,8 +128,8 @@ def trim(arr,eps):
     return out
 
 def get_entanglement_entropy(alpha):
-    '''Get the entanglement entropy from the 2Lx2L matrix C_{ij}=\delta_{ij}+i\alpha_{ij}. See
-    notes EEM for details'''
+    # Get the entanglement entropy from the 2Lx2L matrix C_{ij}=\delta_{ij}+i\alpha_{ij}.
+    # See appendix of PNAS 115 (38) 9491-9496 (2018) for physics details.
 
 #    (q,mu) = diag_antisymm_matr(alpha)
 #    mu = np.sqrt(np.abs(la.eigh(-1 * alpha.dot(alpha))[0]))
@@ -128,7 +145,7 @@ def get_entanglement_entropy(alpha):
     with np.errstate(divide='ignore',invalid='ignore'):
         temp = p*np.log(p)+(1.-p)*np.log(1.-p)
     temp[np.isnan(temp)] = 0.
-    S = -np.sum(temp) / 2. ## We have double counted the eigenvalues by this method. (only need the positive one for each k) Hence /2.
+    S = -np.sum(temp) / 2. ## We have double counted the eigenvalues by this method. (only need the positive one for each k). Hence /2.
 #    S = -2 * np.sum(temp)
     return S
 
@@ -157,7 +174,7 @@ def get_entanglement_entropy(alpha):
 #    S = max(Sa,Sb)
 
 
-    ### old way
+# ## Alternative way
 #    (q,mu) = diag_antisymm_matr(alpha)
 #    eps = []
 #    for m in range(mu.shape[0]):
@@ -167,7 +184,7 @@ def get_entanglement_entropy(alpha):
 #
 #    p_0 = np.exp(-eps) / (np.exp(-eps) + np.exp(eps))
 #    p_0 = trim(p_0,cutoff)
-
+#
 #    print q # debug
 #    print mu
 #    print eps
@@ -194,10 +211,12 @@ def sprinkle(couplings,N):
             couplings[j] = -1. - couplings[j]
     return couplings
 
-def get_F(phi1s,phi2s): # constructs Majorana F operator
-    
+def get_F(phi1s,phi2s):
+    # constructs Majorana F operator from even sublattice phases phi1s
+    # and odd sublattice phases phi2s.
+
     L = phi1s.shape[0]
-    
+
     A_inds=range(0,2*L,2)
     B_inds=range(1,2*L,2)
 
@@ -217,7 +236,7 @@ def get_F(phi1s,phi2s): # constructs Majorana F operator
     U2[A_inds_2,B_inds_2] = np.sin(phi2)
     U2[B_inds_2,A_inds_2] = -np.sin(phi2)
     U2[B_inds_2,B_inds_2] = np.cos(phi2)
-    
+
     phiL =  phi2s[-1]
     U2[0,0] = np.cos(phiL)
     U2[-1,-1] = np.cos(phiL)

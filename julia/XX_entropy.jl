@@ -1,6 +1,8 @@
 #=
-This file calculates the entanglement entropy of the XX model Hamiltonian (static system). 
+This file calculates the entanglement entropy of the XX model Hamiltonian (static system).
+@author: William Berdanier
 =#
+
 using Distributions
 function construct_mat(w_h,w_J,N)
     # Disordered couplings:

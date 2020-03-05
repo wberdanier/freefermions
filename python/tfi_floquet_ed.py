@@ -3,7 +3,7 @@
 """
 Created on Mon Aug  7 15:33:00 2017
 
-@author: will
+@author: William Berdanier
 """
 import matplotlib
 matplotlib.use('Agg')
@@ -15,6 +15,12 @@ from scipy.linalg import expm
 from scipy.linalg import logm
 from scipy.linalg import sqrtm
 import random
+
+###############################################################################
+# This code uses Exact Diagonalization on the Ising model in the spin language.
+# It was used to explicitly check the fermionic code, to ensure agreement.
+# This can be substantially improved with sparse matrix methods.
+###############################################################################
 
 X = np.array([[0,1],[1,0]],dtype = 'complex')
 Y = np.array([[0,1j],[-1j,0]],dtype = 'complex')
@@ -32,7 +38,7 @@ def get_similarity(A,B): # returns percentage of eigenvalues that are the same u
         if np.abs(lam - 1) < eps:
             c += 1
     return float(c) / lams.shape[0]
-    
+
 def trace_overlap(A,B):
     return np.abs(np.trace(np.dot(A,B)))
 
@@ -72,12 +78,12 @@ def get_Z(i,N): # constructs X_i spin matrix
             Zi = np.kron(Zi, Id)
     return Zi
 
-def get_F(H1,H2): 
+def get_F(H1,H2):
     F = np.dot(expm(-1j * H2), expm(-1j * H1))
     return F
 
 def comm(A,B):
-    c = np.dot(A,B) - np.dot(B,A)  
+    c = np.dot(A,B) - np.dot(B,A)
     return c
 
 def sq(A):
@@ -96,10 +102,10 @@ def get_rho(psi,l): # cut from edge of system to middle
     L = mat.shape[0]
     chunk = L / 2**l
     rho = 0. * mat[:chunk,:chunk]
-    
+
     for j in range(2**l):
         rho += mat[chunk * j : chunk * (j+1),chunk * j : chunk * (j+1)]
-        
+
     return rho
 
 #l1 = 0.8
@@ -114,8 +120,8 @@ delta_max = 0.2
 w_epsilon = 1.
 w_delta = 1.
 
-#deltas = l1 * np.ones(L) 
-#epsilons = l2 * np.ones(L-1) 
+#deltas = l1 * np.ones(L)
+#epsilons = l2 * np.ones(L-1)
 
 #w_epsilon = 3.
 #w_delta = w_epsilon
@@ -123,19 +129,19 @@ w_delta = 1.
 #deltas = delta_max * get_rand_couplings(w_delta,L)
 
 ### L = 2, clean
-#epsilons = np.array([-0.2]) 
+#epsilons = np.array([-0.2])
 #deltas = np.array([-0.2,-0.2])
 
 ### L = 2, clean, this works
-#epsilons = np.array([-0.2]) 
+#epsilons = np.array([-0.2])
 #deltas = np.array([1.2,1.2])
 
-### L = 2, clean, this is broken 
-#epsilons = np.array([0.]) 
+### L = 2, clean, this is broken
+#epsilons = np.array([0.])
 #deltas = np.array([0.,1.2])
 
 ## L = 2, dirty
-#epsilons = np.array([-0.2]) 
+#epsilons = np.array([-0.2])
 #deltas = np.array([-0.82,-0.75])
 
 ### L = 2, broken
@@ -166,11 +172,11 @@ w_delta = 1.
 #epsilons = np.array([ 1 - 0.00540518, -0.19833121,  0.00994274,  1 - 0.0022542 , -0.10338123])
 #deltas = np.array([1 + 0.00011637, -0.02354735, 1 + 0.04832932,  1 - 0.0005081 ,  1 - 0.0282347 ,-0.00367225])
 ## w = 3., L = 6, pis - broken
-#epsilons = 1. - np.array([ 1 - 0.00540518, -0.19833121,  0.00994274,  1 - 0.0022542 , -0.10338123, -0.1]) 
+#epsilons = 1. - np.array([ 1 - 0.00540518, -0.19833121,  0.00994274,  1 - 0.0022542 , -0.10338123, -0.1])
 #deltas = 1. - np.array([1 + 0.00011637, -0.02354735, 1 + 0.04832932,  1 - 0.0005081 ,  1 - 0.0282347 ,-0.00367225])
 
 #hs = np.array([0.18,0.15,0.9,0.3])
-#Js = np.array([0.8,0.2,0.7,0.]) 
+#Js = np.array([0.8,0.2,0.7,0.])
 
 #### debug on 4 sites
 hs_mat = np.loadtxt('4hs.out')
@@ -190,10 +196,10 @@ for j in range(L):
     H1 += hs[j] * np.pi / 2. * get_X(j,L)
 for j in range(L-1):
     H2 += Js[j] * np.pi / 2. * get_ZZ(j,L)
-    
+
 H2 += Js[L-1] * np.pi / 2. * get_ZZ(L-1,L) # PBCs
-    
-    
+
+
 F = get_F(H1,H2)
 
 
@@ -213,10 +219,10 @@ for i in range(2**L):
     psi = vF[:,i]
     E = wF[i]
     Ss = []
-    
+
 #    ells = range(L+1)
     ells = [L/2]
-    
+
     for ell in ells:
         rho = get_rho(psi,ell)
         S = get_EE(rho)

@@ -14,25 +14,30 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
+###############################################################################
+# The following code calcualtes the Loschmidt echo and Entanglement Entropy for
+# a critical Ising model periodically driven by a Z-field at the boundary.
+# This code uses the trick of mapping the XX model onto two decoupled copies of
+# the transverse-field Ising (TFI) model. The boundary Z-field is a hopping term.
+# The reason for this is that the Majorana representation is not number-conserving,
+# so this implementation is faster (can use np.det to get the echo, for instance).
+# However, we pay the price of doubling the system size, so the matrices are larger.
+# See PRL 118, 260602 (2017) for physics details.
+###############################################################################
+
 L_TFI = 1000
 L = 2 * L_TFI + 1
 J = 1.
-u = 1.
 h_0i = 0.
-h_0f = 0.3 * np.sqrt(u)
+h_0f = 0.3
 n = 20 #number of time steps in a period
-#N_tot = 9 #total number of periods
-omega = 0.02 * u
+omega = 0.02
 T = 1 / omega
-#t_max = N_tot * (2 * T)
 t_max = L_TFI / 2
 N_tot = int(np.floor(t_max / (2*T)))
 assert t_max <= 0.5 * L_TFI # finite size effects
 dt = T / float(n)
-#if dt > 1:
-#    dt = t_max / 50.
-# dt = T
-ifHigh = False
+ifHigh = False #
 
 J *= 2
 
@@ -67,8 +72,9 @@ for i in range(0,L-1):
     Ha[i+1,i] = Ha[i,i+1]
     Ha[i,i] = 0.0
 
-# Compute spectrum of the initial state,
-# it is important to sort the eigenvalues! (Fill the Fermi Sea)
+# Compute spectrum of the initial state.
+# It is important to first sort the eigenvalues,
+# in order to fill the Fermi Sea of negative modes.
 Ha = Ha.todense()
 Hb = Hb.todense()
 
@@ -78,19 +84,22 @@ wa = wa[idx]
 va = va[:,idx]
 (wb,vb) = np.linalg.eig(Hb)
 
-# Much simpler method (paper Dante)
-Nf = sum(1 for n in wa if n < 0)
-P = va[:,0:Nf] # L*N_f, fill the Fermi Sea
+Nf = sum(1 for n in wa if n < 0) # total number of negative modes
+P = va[:,0:Nf] # L times N_f matrix. This represents the "ground state", since we filled negative modes.
 t = 0
 Gt2_list = [] # Loschmidt echo |G(t)|^2
-t_list = [] # real time
+t_list = [] # real times
 Gt2_local_list = []
 
+## initial state
 P0 = np.conj(np.transpose(P))
 
+## time evolution matrices
 UTb = np.dot(vb,np.dot(np.diag(np.exp(-1j*T*wb)),np.transpose(vb)))
 UTa = np.dot(va,np.dot(np.diag(np.exp(-1j*T*wa)),np.transpose(va)))
 UT = np.dot(UTa,UTb)
+
+## time-evolved state (initially equal to P0).
 Pt = P0.conj().T
 
 while (t <= t_max + 0.01):
@@ -110,28 +119,27 @@ while (t <= t_max + 0.01):
     Pt = np.dot(Ut,P)
     Gt2 = (np.abs(np.linalg.det( np.dot(P0,Pt))))**2
 
-    #    # Entanglement entropy (from correlation matrix): much slower
-#    Sl=[]
-#    for l in range(1,L):
-#        C=np.dot(Pt,np.conj(np.transpose(Pt)))[:l,:l]
-#        (wC,vC) = np.linalg.eig(C)
-#        S=0
-#        for l in wC:
-#            if (l>0.0000000001) and (l<1-0.0000000001):
-#                S-=(1.0-l)*np.log(1.0-l)+(l)*np.log(l)
-#        Sl.append(np.real(S))
-#    Sl.append(0.0)
-#    S_list.append(Sl)
+   # # Entanglement entropy (from correlation matrix):
+   # Sl=[]
+   # for l in range(1,L):
+   #     C=np.dot(Pt,np.conj(np.transpose(Pt)))[:l,:l]
+   #     (wC,vC) = np.linalg.eig(C)
+   #     S=0
+   #     for l in wC:
+   #         if (l>0.0000000001) and (l<1-0.0000000001):
+   #             S-=(1.0-l)*np.log(1.0-l)+(l)*np.log(l)
+   #     Sl.append(np.real(S))
+   # Sl.append(0.0)
+   # S_list.append(Sl)
+   #
+   # # Calculate Local Loschmidt echo (much slower)
+   # Gt2_local = []
+   # for l in range(1,L):
+   #     Gt2l = (np.abs(np.linalg.det( np.dot(P0[:l,:l],Pt[:l,:l]))))**2
+   #     Gt2_local.append(Gt2l)
+   # Gt2_local_list.append(Gt2_local)
 
-#    # Calculate Local Loschmidt echo (much slower)
-#    Gt2_local = []
-#    for l in range(1,L):
-#        Gt2l = (np.abs(np.linalg.det( np.dot(P0[:l,:l],Pt[:l,:l]))))**2
-#        Gt2_local.append(Gt2l)
-#    Gt2_local_list.append(Gt2_local)
 
-
-#    print G
     Gt2_list.append(Gt2)
     t += dt
 
@@ -140,11 +148,9 @@ Gt2_list_tfi = np.array(Gt2_list) ** 0.5
 Gt2_list_tfi_temp = Gt2_list_tfi
 T_temp = T
 
-if ifHigh:
-    # Compute spectrum of the initial state,
-    # it is important to sort the eigenvalues! (Fill the Fermi Sea)
+if ifHigh: ## ifHigh is simply a flag for if we want to compare to the high-frequency expansion result.
 
-    # High frequency expansion for floquet hamiltonian to 4th order
+    # High frequency expansion for Floquet hamiltonian to 4th order (from Mathematica).
     HF = 0.5 * (Ha + Hb) - 1j * T / 4. * comm(Ha,Hb) - T**2 / 24. * ( comm(Ha,comm(Ha,Hb)) + comm(Hb,comm(Hb,Ha)) ) - 1j * T**3 / 48. * comm(Hb,comm(Ha,comm(Ha,Hb))) - T**4 / 1440. * ( comm(Hb,comm(Hb,comm(Hb,comm(Hb,Ha)))) + comm(Ha,comm(Ha,comm(Ha,comm(Ha,Hb)))) - 2. * ( comm(Ha,comm(Hb,comm(Hb,comm(Hb,Ha)))) + comm(Hb,comm(Ha,comm(Ha,comm(Ha,Hb)))) ) - 6. * ( comm(Hb,comm(Ha,comm(Hb,comm(Ha,Hb)))) + comm(Ha,comm(Hb,comm(Ha,comm(Hb,Ha)))) ) )
 
     Hb = HF # I am lazy

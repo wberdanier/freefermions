@@ -13,6 +13,10 @@ import os
 import numpy.random as ra
 
 def get_H(hb,J,L_TFI):
+    # Returns an nparray Hamiltonian for the XX chain with a given bulk hopping J
+    # and boundary hopping hb (units of J). The length of the chain is L=2*L_TFI+1;
+    # this uses the mapping of XX = 2 decoupled copies of TFI, and 1 extra site for the boundary field.
+
     L = 2*L_TFI + 1
 
     H = sp.dok_matrix((L,L), dtype='d')
@@ -23,7 +27,8 @@ def get_H(hb,J,L_TFI):
     H[1,0] = H[0,1]
     return H.todense()
 
-def diag_H(H): # returns sorted eigenvalues/vectors
+def diag_H(H):
+    # Returns sorted eigenvalues/vectors of a Hermitian nparray H.
     (wa,va) = np.linalg.eigh(H)
     idx = wa.argsort()
     wa = wa[idx]
@@ -31,19 +36,32 @@ def diag_H(H): # returns sorted eigenvalues/vectors
     return (wa,va)
 
 def get_U(H,dt):
+    # Returns time evolution operator for evolving under hamiltonian H for a time dt.
     (w,v) = diag_H(H)
     U = v.dot(np.diag(np.exp(-1j * dt * w))).dot(v.T)
     return U
 
 def get_echo(P0,Pt):
+    # Returns the Loschmidt echo (fidelity) between a time-evolved state Pt and initial state P0.
     return np.abs(la.det(P0.conj().T.dot(Pt)))**2
 
 def get_diagonal(M,j=0):
+    # Gets diagonal slice of a matrix M along diagonal j.
     M = np.array(M)
     L = M.shape[0]
     return [M[i,i+j] for i in range(L-np.abs(j))]
-    
+
 def run_code_markovian(L,J,hb,prob,dt,type="fixed_fixed",print_step=0):
+    ###############################################################################
+    # Full method to calculate the Loschmidt echo of a critical Ising model with boundary
+    # field hb that stochastically flips according to a Poisson process (Markovian).
+    # Boundary field flips between (-hb,hb) (type="fixed_fixed") or (0,hb) (type="free_fixed")
+    # with probability prob in time dt.
+    # TFI model parameters: L=system size, J=bulk hopping (critical so g=1).
+    # See PRL 123, 230604 (2019) for physics details.
+    ###############################################################################
+
+    ## testing parameters:
     #L = 500
     #J = 2. # sets speed of sound
     #hb = 0.5 # in units of J
@@ -109,6 +127,13 @@ def run_code_markovian(L,J,hb,prob,dt,type="fixed_fixed",print_step=0):
     return echoes
 
 def run_code_nonmarkovian(L,J,hb,prob,dt,type="fixed_fixed",print_step=0):
+    # Full method to calculate the Loschmidt echo of a critical Ising model with boundary
+    # field hb that stochastically flips according to a non-Markovian process (has memory).
+    # Boundary field flips between (-hb,hb) (type="fixed_fixed") or (0,hb) (type="free_fixed")
+    # with probability prob in time dt.
+    # TFI model parameters: L=system size, J=bulk hopping (critical so g=1).
+
+    ### testing parameters
     #L = 500
     #J = 2. # sets speed of sound
     #hb = 0.5 # in units of J

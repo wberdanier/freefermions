@@ -12,6 +12,13 @@
 using namespace std;
 using mpfr::mpreal;
 
+////////////////////////////////////////////////
+// This code calculate the entanglement entropy of a disordered driven 1D quantum system of free Majoranas.
+// It uses the Eigen package, as well as MPFR for arbitrary precision numerics.
+// See PNAS 115 (38) 9491-9496 (2018) for physics details.
+// Also included in this directory is python code for calling these C++ methods using the SWIG interface.
+////////////////////////////////////////////////
+
 // typedef long double mydtype; // long doubles
 // typedef double mydtype; // regular doubles
 
